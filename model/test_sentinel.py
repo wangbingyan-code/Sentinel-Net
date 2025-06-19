@@ -176,7 +176,7 @@ def build_autoencoder(input_shape=(448, 320, 3), activation='relu'):
     return autoencoder
 traindir = "../dataset/train/normal"
 normal_dir = "../dataset/val/normal"
-anomaly_dir = "../dataset/val/yichang"
+anomaly_dir = "../dataset/val/anormaly"
 
 train_dataset = create_dataset(traindir, batch_size=4)
 normal_dataset = create_dataset(normal_dir, batch_size=1)
