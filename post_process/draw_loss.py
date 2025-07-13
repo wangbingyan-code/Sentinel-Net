@@ -16,7 +16,7 @@ def load_and_prepare_data(file_path, model_name):
         df.dropna(subset=['epoch', 'loss'], inplace=True)
         df.sort_values('epoch', inplace=True)
         
-        # 对损失进行归一化
+        # Normalize loss
         df['loss'] = normalize_series(df['loss'])
         
         return df
@@ -29,7 +29,7 @@ AVE_model = load_and_prepare_data('../output/loss/loss_data_vae.csv', 'AVE_model
 Sentinel_net = load_and_prepare_data('../output/loss/loss_data_sentinel.csv', 'Sentinel_net')
 AAE_model = load_and_prepare_data('../output/loss/loss_data_aae.csv', 'AAE_model')
 
-# 检查是否有有效的数据
+# Check if there is valid data
 models = [(AE_model, 'AE_model', 'b', '-', 2), 
           (AVE_model, 'AVE_model', 'g', '--', 2), 
           (AAE_model, 'AAE_model', 'purple', ':', 2), 
@@ -39,10 +39,10 @@ models = [m for m in models if m[0] is not None]
 if not models:
     print("No valid data to plot. Exiting.")
 else:
-    # 创建一个双轴图
+    # Create a dual-axis plot
     fig, ax1 = plt.subplots(figsize=(12, 8))
 
-    # 绘制模型损失曲线
+    # Plot model loss curves
     for model, label, color, linestyle, linewidth in models[:-1]:
         ax1.plot(model['epoch'], model['loss'], label=f'{label}: Loss', color=color, linestyle=linestyle, linewidth=linewidth)
 
@@ -51,10 +51,10 @@ else:
     ax1.tick_params(axis='y', labelcolor='blue')
     ax1.grid(True)
 
-    ax1.xaxis.set_major_locator(MultipleLocator(10))  # 每 10 个 epoch 一个主刻度
-    ax1.xaxis.set_minor_locator(MultipleLocator(5))  # 每 5 个 epoch 一个次刻度
+    ax1.xaxis.set_major_locator(MultipleLocator(10))  # Major tick every 10 epochs
+    ax1.xaxis.set_minor_locator(MultipleLocator(5))   # Minor tick every 5 epochs
 
-    # 绘制 Sentinel_net 损失（右 y 轴）
+    # Plot Sentinel_net loss (right y-axis)
     if models[-1][1] == 'Sentinel_net':
         sentinel_data = models[-1][0]
         ax2 = ax1.twinx()
@@ -62,7 +62,7 @@ else:
         ax2.set_ylabel('Loss (Sentinel_net)', fontsize=16, color='red')
         ax2.tick_params(axis='y', labelcolor='red')
 
-    # 添加图例
+    # Add legend
     lines1, labels1 = ax1.get_legend_handles_labels()
     if 'ax2' in locals():
         lines2, labels2 = ax2.get_legend_handles_labels()
@@ -70,9 +70,8 @@ else:
     else:
         fig.legend(lines1, labels1, loc="upper right", bbox_to_anchor=(0.9, 0.9), fontsize=14)
 
-    # 优化图形布局
+    # Optimize layout
     plt.title('Loss Curves with Dual Axes', fontsize=18)
     plt.tight_layout()
 
-    # 显示图像
-    plt.show()
+    # Show

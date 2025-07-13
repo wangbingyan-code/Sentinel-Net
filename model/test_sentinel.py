@@ -1,4 +1,3 @@
-# 在卷积自编码器上加入注意力模块
 import os
 from PIL import Image
 from datetime import datetime
@@ -43,7 +42,7 @@ def set_chinese_font():
         prop = fm.FontProperties(fname=font_path)
         plt.rcParams['font.family'] = prop.get_name()
     else:
-        print("字体文件未找到，请调整路径")
+        print("Font file not found, please adjust the path.")
 
 set_chinese_font()
 
@@ -61,7 +60,7 @@ def create_dataset(directory, batch_size=32, target_size=(448, 320)):
         img = tf.io.read_file(filename)
         img = tf.image.decode_jpeg(img, channels=3)
         img = tf.image.resize(img, target_size)
-        img = img / 255.0  # 归一化到 [0, 1]
+        img = img / 255.0  # Normalize to [0, 1]
         return img, img
 
     dataset = tf.data.Dataset.from_tensor_slices(filenames)
@@ -84,7 +83,7 @@ def show_data(data, n_imgs=8, title=""):
 def build_autoencoder(input_shape=(448, 320, 3), activation='relu'):
     input_layer = Input(shape=input_shape, name="INPUT")
     encoder = layers.GaussianNoise(stddev=0.2)(input_layer)
-    # print("输入层形状:", input_layer.shape)
+    # print("Input layer shape:", input_layer.shape)
     if activation == 'leaky_relu':
         activation_fn = layers.LeakyReLU(alpha=0.2)
     elif activation == 'elu':
@@ -133,13 +132,13 @@ def build_autoencoder(input_shape=(448, 320, 3), activation='relu'):
     encoded = Flatten()(encoded)
     encoded = Dense(512)(encoded)
     encoded = activation_fn(encoded)
-    # print("编码器输出形状:", encoded.shape)
+    # print("Encoder output shape:", encoded.shape)
     ####################################################
     decoder = Dense(np.prod(encoder_shape))(encoded)  
     decoder = activation_fn(decoder)
     decoder = Reshape(encoder_shape)(decoder)
     
-    # 解码器
+    # Decoder
     decoder = Conv2DTranspose(16, (3, 3), padding='same')(decoder)
     decoder = spatial_attention(decoder)
     # decoder = activation_fn(decoder)
@@ -170,7 +169,7 @@ def build_autoencoder(input_shape=(448, 320, 3), activation='relu'):
     # decoder = UpSampling2D((2, 2))(decoder)
     
     output_layer = Conv2D(3, (3, 3), padding='same', name="OUTPUT")(decoder)
-    # print("解码器输出形状:", output_layer.shape) 
+    # print("Decoder output shape:", output_layer.shape) 
     autoencoder = Model(input_layer, output_layer)
     autoencoder.compile(loss=ssim_loss, optimizer='adam', metrics=['accuracy'])
     return autoencoder
@@ -186,14 +185,14 @@ train_size = len([name for name in os.listdir(traindir) if name.endswith(('png',
 normal_size = len([name for name in os.listdir(normal_dir) if name.endswith(('png', 'jpg'))])
 anomaly_size = len([name for name in os.listdir(anomaly_dir) if name.endswith(('png', 'jpg'))])
 
-print(f"训练数据集大小: {train_size}")
-print(f"正常数据集大小: {normal_size}")
-print(f"异常数据集大小: {anomaly_size}")
+print(f"Train dataset size: {train_size}")
+print(f"Normal dataset size: {normal_size}")
+print(f"Anomaly dataset size: {anomaly_size}")
 
-choice = input("您想训练一个新模型还是加载一个现有模型？(train/load): ").strip().lower()
+choice = input("Do you want to train a new model or load an existing one? (train/load): ").strip().lower()
 
 if choice == 'train':
-    activation_choice = input("选择激活函数 (relu/leaky_relu/elu/prelu/swish): ").strip().lower()
+    activation_choice = input("Choose activation function (relu/leaky_relu/elu/prelu/swish): ").strip().lower()
     autoencoder = build_autoencoder(input_shape=(448, 320, 3), activation=activation_choice)
     autoencoder.summary()
 
@@ -228,11 +227,11 @@ start_time = time.time()
 reconstructed = autoencoder.predict(normal_data_batch)
 end_time = time.time()  
 inference_time = end_time - start_time
-print(f"normal_dataset 数据集推理耗时: {inference_time:.4f} 秒，平均每张图片耗时: {inference_time / normal_size:.4f} 秒")
-show_data(normal_data_batch, title="原始正常图片")
-show_data(reconstructed, title="重建正常图片")
+print(f"normal_dataset inference time: {inference_time:.4f} s, average per image: {inference_time / normal_size:.4f} s")
+show_data(normal_data_batch, title="Original normal images")
+show_data(reconstructed, title="Reconstructed normal images")
 results = autoencoder.evaluate(normal_dataset, steps=normal_size)
-print("正常数据的损失和准确率", results)
+print("Normal data loss and accuracy", results)
 results = autoencoder.evaluate(normal_dataset, steps=normal_size)
 print(f"Evaluation results: {results}")
 anomaly_data_batch = next(iter(anomaly_dataset))[0]
@@ -240,18 +239,18 @@ start_time = time.time()
 reconstructed = autoencoder.predict(anomaly_data_batch)
 end_time = time.time()  
 inference_time = end_time - start_time
-print(f"anomaly_dataset 数据集推理耗时: {inference_time:.4f} 秒，平均每张图片耗时: {inference_time / anomaly_size:.4f} 秒")
+print(f"anomaly_dataset inference time: {inference_time:.4f} s, average per image: {inference_time / anomaly_size:.4f} s")
 
-show_data(anomaly_data_batch, title="原始异常图片")
-show_data(reconstructed, title="重建异常图片")
+show_data(anomaly_data_batch, title="Original anomaly images")
+show_data(reconstructed, title="Reconstructed anomaly images")
 
 results = autoencoder.evaluate(anomaly_dataset, steps=anomaly_size)
-print("异常数据的损失和准确率", results)
+print("Anomaly data loss and accuracy", results)
 
 # Total params: 9,942,619
 # Trainable params: 9,942,619
 # Non-trainable params: 0
-# normal_dataset 数据集推理耗时: 2.7910 秒，平均每张图片耗时: 0.0797 秒
-# 正常数据的损失和准确率 [0.04749399796128273, 0.8432541489601135]
-# anomaly_dataset 数据集推理耗时: 0.1209 秒，平均每张图片耗时: 0.0151 秒
-# 异常数据的损失和准确率 [0.10565264523029327, 0.8132263422012329]
+# normal_dataset inference time: 2.7910 s, average per image: 0.0797 s
+# Normal data loss and accuracy [0.04749399796128273, 0.8432541489601135]
+# anomaly_dataset inference time: 0.1209 s, average per image: 0.0151 s
+# Anomaly data loss and accuracy [0.10565264523029327, 0.8132263422012329]

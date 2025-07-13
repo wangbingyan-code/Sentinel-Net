@@ -7,7 +7,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from scipy.spatial.distance import euclidean
 def open_image():
     root = tk.Tk()
-    root.withdraw()  # 隐藏主窗口
+    root.withdraw()  
     file_path = filedialog.askopenfilename()
     return file_path
 

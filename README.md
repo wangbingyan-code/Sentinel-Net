@@ -1,57 +1,130 @@
-# Sentinel-Net
-Sentinel-Net for Anomaly Events Detection of Meteorological Sta-tions Monitoring
+# Sentinel-Net: Anomaly Events Detection of Meteorological Stations Monitoring
+
+This repository contains the source code and dataset used in the paper "*Sentinel-Net for Anomaly Events Detection of Meteorological Stations Monitoring*". Sentinel-Net is a convolutional autoencoder-based network designed for detecting anomalous events in surveillance videos collected from meteorological station environments.
+
+## 📂 Project Structure
+```
+Sentinel-Net/
+├── model/
+│ └── trains_sentinel.py # Main script for training and inference
+├── dataset/
+│ ├── train/
+│ │ ├── normal/ # Training images from normal images
+│ │ └── anomaly/ # (Optional) Abnormal images, for testing only
+│ └── val/
+├── output/
+├── post_process/ 
+├── pro_process/ 
+├── val/ 
+├── requirements.txt
+└── README.md
+```
 ## ⚙️ Environment Setup
-Install required dependencies:
-bash
-pip install -r requirements.txt
+Install the required dependencies using:
+
+```bash
+pip install -r requirements.txt 
+````
 ## 📦 Dataset Preparation
-You can access this dataset from the provided https://pan.baidu.com/s/1lE1ffEIvluwZwNtztmeN9w?pwd=n74t.
+You can access this dataset from the provided.Supported formats: .png or .jpg.
+```
+https://pan.baidu.com/s/1lE1ffEIvluwZwNtztmeN9w?pwd=n74t.
+```
+```
+dataset/
+├── train/
+│   └── normal/
+|   └── anomaly/
+└── val/
+    ├── normal/
+    └── anomaly/
+```
 
-normal/: normal samples
 
-anomaly/: abnormal samples
+![alt text](image.png)
 
-Supported formats: .png or .jpg.
+## 🧠 Training and Inference
+Run the main script:
+```
+python trains_sentinel.py
+```
+You will be prompted to choose:
 
-## 🧠 Train and Test the Model
-Run:
+.train – Train a new model using normal training samples.
 
-bash python model/test_sentinel.py
-The script will prompt for one of the following operations:
+.load – Load a pre-trained model and perform anomaly inference.
 
-Enter train: to train a new model
+## 🔁 Training a New Model
+The model is trained only on normal data.If you wish to replace it with your own dataset, first crop the normal sample images to 448 × 320 and then place them in the /dataset/train/normal folder.
 
-Enter load: to load an existing model and perform inference
+You can choose one of the following activation functions: relu, leaky_relu, elu, prelu, or swish.
 
-## 🔁 Train a New Model
-Choose an activation function (relu, leaky_relu, elu, prelu, swish)
+The trained model will be saved to:
+output/model_attention.h5
 
-Model will be trained on normal data
+Training loss will be logged to:
+output/loss_data_sentinel.csv
 
-Trained model is saved to output/model_attention.h5
+A loss curve will also be automatically generated.
 
-Training loss is saved as loss_data_sentinel.csv, and a loss curve will be generated
+## 📊 Performing Inference
+The script automatically loads the latest trained model or allows manual path input.
 
-## 📊 Load and Run Inference
-Automatically loads the latest model (or specify a path manually)
+Performs inference on both normal and anomaly images in the validation set.
 
-Performs inference on both normal and anomaly samples in the val set
+Outputs include:
 
-Outputs inference time, reconstruction results, loss, and accuracy
+Inference time per image
+
+Reconstruction results
+
+MSE and SSIM loss
+
+Detection accuracy
+
+![alt text](image-1.png)
 
 ### 🧾 Output Files
-Model: output/<timestamp>/model_attention.h5
+| File                            | Description                                 |
+| ------------------------------- | ------------------------------------------- |
+| `output/model_attention.h5`     | Trained model file                          |
+| `output/loss_data_sentinel.csv` | Loss values recorded during training        |
+| Terminal output                 | Inference logs including timing and metrics |
 
-Loss data: output/loss_data_sentinel.csv
 
-Inference results: printed in terminal (includes timing, loss, and accuracy)
+## 📌 Notes
+Make sure font file paths (e.g., simhei.ttf) are correct if displaying Chinese characters in output.
 
-## ⚠️ Notes
-Ensure the font file (e.g., simhei.ttf) path is correct for displaying Chinese characters
+All image files should be in .png or .jpg format.
 
-Modify paths in test_sentinel.py to match your dataset
+Manually update the dataset path in test_sentinel.py if needed.
 
-Supported image formats: .png and .jpg
+## 📐 Methodology
+The Sentinel-Net architecture integrates:
+
+Multi-scale convolutional kernels for feature diversity
+
+Encoder-decoder structure for frame reconstruction
+
+Combination of Mean Squared Error (MSE) and Structural Similarity Index (SSIM) for reconstruction loss
+
+Frame-level anomaly classification based on reconstruction error
+
+Evaluation is performed using frame-level accuracy, loss comparison, and optional ablation studies on activation functions and network configurations.
+
+## 📚 Citation
+If you use this code or dataset, please cite our work:
+
+Bingyan Wang, et al. "Sentinel-Net for Anomaly Events Detection of Meteorological Stations Monitoring", PeerJ Computer Science, 2025.
 
 ## 📬 Contact
-For any issues or questions, please contact the project maintainer.
+For questions, please contact:
+```
+📧 20231513125@sspu.edu.cn
+```
+
+## 📄 License
+This project is released under the MIT License. See the LICENSE file for details.
+
+## 🙌 Contribution Guidelines
+We welcome contributions! Please open an issue or submit a pull request for bug fixes or improvements.

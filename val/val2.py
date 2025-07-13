@@ -17,22 +17,22 @@ def preprocess_image(image_path, target_size=(448, 320)):
     img = image.load_img(image_path, target_size=target_size)
     img_array = image.img_to_array(img)
     img_array = img_array.astype('float32') / 255.0
-    img_array = np.expand_dims(img_array, axis=0)  # 增加批处理维度
+    img_array = np.expand_dims(img_array, axis=0)  
     return img_array
 
-# 计算并显示重建误差
+
 def compute_reconstruction_error(image_data):
     reconstruct_loss = autoencoder.evaluate(image_data, image_data, batch_size=2, verbose=0)
     return reconstruct_loss[0]
     
 
-# 加载模型
+
 autoencoder = load_model(model_path, custom_objects={'ssim_loss': ssim_loss})
 
-# 为文件夹下的每一张图片创建一个路径
+
 image_paths = [os.path.join(folder_path, image_file) for image_file in os.listdir(folder_path) if image_file.endswith((".png", ".jpg"))]
 total_files = len(image_paths)
-anomaly_count = 0  # 异常文件计数
+anomaly_count = 0  
 
 for image_path in image_paths:
     print(f"处理图片 {image_path}")

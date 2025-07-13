@@ -11,7 +11,7 @@ def preprocess_image(file_path, target_size=(448, 320)):
 
 def compute_reconstruction_error(model, image_data):
     results = model.evaluate(image_data, image_data, batch_size=2)
-    print(f"重建损失: {results}")
+    print(f"reconstructed loss: {results}")
 
 def sampling(args):
     z_mean, z_log_var = args
@@ -31,9 +31,9 @@ def process_images_in_folder(folder_path):
     all_images = np.array(all_images)
     compute_reconstruction_error(vae, all_images)
 
-# 加载模型
+
 vae = load_model('output/vae_model.h5', custom_objects={'sampling': sampling})
 
-# 处理文件夹中的图片
+
 folder_path ="dataset/val/normal"  
 process_images_in_folder(folder_path)

@@ -9,12 +9,12 @@ import tensorflow as tf
 import matplotlib.font_manager as fm
 
 def set_chinese_font():
-    font_path = "C:/Windows/Fonts/simhei.ttf"  # 根据系统字体路径进行调整
+    font_path = "C:/Windows/Fonts/simhei.ttf"  
     if os.path.exists(font_path):
         prop = fm.FontProperties(fname=font_path)
         plt.rcParams['font.family'] = prop.get_name()
     else:
-        print("字体文件未找到，请调整路径")
+        print("Font file not found, please adjust the path.")
 
 set_chinese_font()
 
@@ -44,7 +44,6 @@ def show_data(data, n_imgs=8, title=""):
     plt.show()
 
 def sampling(args):
-    """重参数化技巧"""
     z_mean, z_log_var = args
     batch = tf.shape(z_mean)[0]
     dim = tf.shape(z_mean)[1]
@@ -66,20 +65,20 @@ def build_variational_autoencoder(input_shape=(448, 320, 3), latent_dim=512, act
     encoder = Dropout(0.3)(encoder)
     encoder = MaxPooling2D((2, 2))(encoder)
 
-    # 获取编码后的形状
+    # Get encoded shape
     encoder_shape = tf.keras.backend.int_shape(encoder)[1:]
 
-    # 平坦化
+    # Flatten
     encoder_flat = Flatten()(encoder)
     
-    # 均值和对数方差
+    # Mean and log variance
     z_mean = Dense(latent_dim)(encoder_flat)
     z_log_var = Dense(latent_dim)(encoder_flat)
 
-    # 采样
+    # Sampling
     z = Lambda(sampling)([z_mean, z_log_var])
 
-    # 解码器
+    # Decoder
     decoder_input = Dense(np.prod(encoder_shape))(z)
     decoder_input = Reshape(encoder_shape)(decoder_input)
 
@@ -94,10 +93,9 @@ def build_variational_autoencoder(input_shape=(448, 320, 3), latent_dim=512, act
 
     output_layer = Conv2D(3, (3, 3), padding='same', name="OUTPUT")(decoder)
 
-    # 创建模型
     vae = Model(input_layer, output_layer)
 
-    # 自定义损失函数
+    # VAE loss
     reconstruction_loss = tf.keras.losses.binary_crossentropy(input_layer, output_layer) * np.prod(input_shape)
     kl_loss = -0.5 * tf.reduce_mean(z_log_var - tf.square(z_mean) - tf.exp(z_log_var) + 1)
     vae_loss = tf.reduce_mean(reconstruction_loss + kl_loss)
@@ -118,11 +116,11 @@ train_size = len([name for name in os.listdir(traindir) if name.endswith(('png',
 normal_size = len([name for name in os.listdir(normal_dir) if name.endswith(('png', 'jpg'))])
 anomaly_size = len([name for name in os.listdir(anomaly_dir) if name.endswith(('png', 'jpg'))])
 
-print(f"训练数据集大小: {train_size}")
-print(f"正常数据集大小: {normal_size}")
-print(f"异常数据集大小: {anomaly_size}")
+print(f"Train dataset size: {train_size}")
+print(f"Normal dataset size: {normal_size}")
+print(f"Anomaly dataset size: {anomaly_size}")
 
-choice = input("您想训练一个新模型还是加载一个现有模型？(train/load): ").strip().lower()
+choice = input("Do you want to train a new model or load an existing one? (train/load): ").strip().lower()
 
 if choice == 'train':
     vae = build_variational_autoencoder(input_shape=(448, 320, 3), latent_dim=512)
@@ -137,9 +135,9 @@ if choice == 'train':
     vae.save("output/vae_model.h5")
     
     plt.plot(history.history['loss'])
-    plt.title('模型损失')
-    plt.ylabel('损失')
-    plt.xlabel('轮次')
+    plt.title('Model Loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
     plt.show()
 else:
     vae = tf.keras.models.load_model('output/vae_model.h5', custom_objects={'sampling': sampling})
@@ -148,16 +146,16 @@ vae.summary()
 
 normal_data_batch = next(normal_gen)[0]
 reconstructed = vae.predict(normal_data_batch)
-show_data(normal_data_batch, title="原始正常图片")
-show_data(reconstructed, title="重建正常图片")
+show_data(normal_data_batch, title="Original normal images")
+show_data(reconstructed, title="Reconstructed normal images")
 
 results = vae.evaluate(normal_gen, steps=normal_size // 8)
-print("正常数据的损失和准确率", results)
+print("Normal data loss and accuracy", results)
 
 anomaly_data_batch = next(anomaly_gen)[0]
 reconstructed = vae.predict(anomaly_data_batch)
-show_data(anomaly_data_batch, title="原始异常图片")
-show_data(reconstructed, title="重建异常图片")
+show_data(anomaly_data_batch, title="Original anomaly images")
+show_data(reconstructed, title="Reconstructed anomaly images")
 
 results = vae.evaluate(anomaly_gen, steps=anomaly_size // 8)
-print("异常数据的损失和准确率", results)
+print("Anomaly data loss and accuracy", results)
